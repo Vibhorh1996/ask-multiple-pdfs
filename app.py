@@ -134,7 +134,7 @@ def main():
 
         clear_button = st.sidebar.button("Clear Conversation", key="clear")
         if clear_button:
-            st.session_state.conversation.clear_memory()
+            st.session_state.conversation.memory.clear()
             st.session_state.chat_history = None
             st.write("Conversation cleared.")
 
