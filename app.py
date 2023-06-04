@@ -132,6 +132,13 @@ def main():
                 st.session_state.conversation = get_conversation_chain(
                     vectorstore)
 
+        clear_button = st.sidebar.button("Clear Conversation", key="clear")
+        if clear_button:
+            st.session_state.conversation.clear_memory()
+            st.session_state.chat_history = None
+            st.write("Conversation cleared.")
+
+        
         # model_name = st.sidebar.radio("Choose a model:",("GPT-3.5", "GPT-4"))
         # counter_placeholder = st.sidebar.empty()
         # counter_placeholder.write(f"Total cost of this conversation: ${st.session_state['total_cost']:.5f}")
