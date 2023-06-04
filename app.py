@@ -51,18 +51,39 @@ def get_conversation_chain(vectorstore):
     )
     return conversation_chain
 
-
+chat_placeholder = st.empty()
 def handle_userinput(user_question):
-    response = st.session_state.conversation({'question': user_question})
+    prefix = 'I want you to act as a document that I am having a conversation with. Your name is "AI '
+             'Assistant". You will provide me with answers from the given info. If the answer is not included, '
+             'say exactly "Hmm, I am not sure." and stop after that. Refuse to answer any question not about '
+             'the info. Never break character.'
+    response = st.session_state.conversation({'question': prefix + user_question})
     st.session_state.chat_history = response['chat_history']
-
+    
+    chat_output = ""
     for i, message in enumerate(st.session_state.chat_history):
         if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
+            chat_output += user_template.replace(
+                "{{MSG}}", message.content)
         else:
-            st.write(bot_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
+            chat_output += bot_template.replace(
+                "{{MSG}}", message.content)
+    chat_placeholder.write(chat_output, unsafe_allow_html=True)
+    
+clear_button = st.sidebar.button("Clear Conversation", key="clear")
+if clear_button:
+    st.session_state.conversation.memory.clear()
+    st.session_state.chat_history = None
+    chat_placeholder.empty()
+    st.write("Conversation cleared.")    
+    
+#     for i, message in enumerate(st.session_state.chat_history):
+#         if i % 2 == 0:
+#             st.write(user_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
+#         else:
+#             st.write(bot_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
 
 
 def main():
@@ -131,12 +152,6 @@ def main():
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(
                     vectorstore)
-
-        clear_button = st.sidebar.button("Clear Conversation", key="clear")
-        if clear_button:
-            st.session_state.conversation.memory.clear()
-            st.session_state.chat_history = None
-            st.write("Conversation cleared.")
 
         
         # model_name = st.sidebar.radio("Choose a model:",("GPT-3.5", "GPT-4"))
