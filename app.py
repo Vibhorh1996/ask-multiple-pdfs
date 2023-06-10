@@ -105,7 +105,12 @@ def main():
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
+    st.session_state.chat_history = [
+        {"role": "system", "content": "You will act as a PDF AI Assistant. You will be answering questions only related to the uploaded PDFs. If any question other than PDFs is asked, please reply: 'Not related to the PDFs. Can you ask another question?'"}
+    ]
+    
+#     if "chat_history" not in st.session_state:
+#         st.session_state.chat_history = None
 
     st.header("Chat with multiple PDFs :books:")
     user_question = st.text_input("Ask a question about your documents:")
