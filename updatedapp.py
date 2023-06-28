@@ -58,7 +58,7 @@ def handle_userinput(user_question):
         st.session_state.conversation = ChatOpenAI()
         st.session_state.chat_history = []
 
-    response = st.session_state.conversation([{'role': 'user', 'content': user_question}])
+    response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history += response['chat_history']
 
     for i, message in enumerate(st.session_state.chat_history):
