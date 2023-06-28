@@ -83,10 +83,10 @@ def main():
     os.environ['OPENAI_API_KEY'] = key
 
     if "conversation" not in st.session_state:
-    st.session_state.conversation = []
+        st.session_state.conversation = []
 
     if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+        st.session_state.chat_history = []
 
     st.header("Chat with multiple PDFs :books:")
     user_question = st.text_input("Ask a question about your documents:")
