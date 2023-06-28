@@ -53,24 +53,26 @@ def get_conversation_chain(vectorstore):
 
 
 def handle_userinput(user_question):
-    if st.session_state.conversation:
-        response = st.session_state.conversation({'question': user_question})
-        st.session_state.chat_history = response['chat_history']
-
-        for i, message in enumerate(st.session_state.chat_history):
-            if i % 2 == 0:
-                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-            else:
-                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-        
-        # Check if the last response is relevant to the uploaded PDFs
-        last_response = st.session_state.chat_history[-1].content
-        if "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs." in last_response:
-            # Clear conversation chain to restrict answering questions outside PDF scope
-            st.session_state.conversation = None
+    if st.session_state.conversation is None:
+        st.session_state.conversation = {'question': user_question}
     else:
-        st.write(bot_template.replace("{{MSG}}", "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs."), unsafe_allow_html=True)
-        st.session_state.chat_history = []  # Clear chat history
+        if 'pdf_questions' not in st.session_state:
+            st.session_state.pdf_questions = []
+        if user_question in st.session_state.pdf_questions:
+            st.session_state.conversation['question'] = user_question
+        else:
+            st.session_state.conversation = {'question': user_question}
+
+    response = st.session_state.conversation
+    st.session_state.chat_history = response['chat_history']
+
+    for i, message in enumerate(st.session_state.chat_history):
+        if i % 2 == 0:
+            st.write(user_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
+        else:
+            st.write(bot_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
 
 
 # def handle_userinput(user_question):
