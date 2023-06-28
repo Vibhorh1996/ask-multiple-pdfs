@@ -55,7 +55,7 @@ def get_conversation_chain(vectorstore):
 def handle_userinput(user_question):
     if not st.session_state.conversation:
         # No conversation exists yet, create a new one
-        st.session_state.conversation = [{'role': 'system', 'content': 'Please ask questions related to the uploaded PDFs.'}]
+        st.session_state.conversation = ChatOpenAI()
         st.session_state.chat_history = []
 
     response = st.session_state.conversation({'question': user_question})
