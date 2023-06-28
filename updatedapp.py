@@ -53,27 +53,17 @@ def get_conversation_chain(vectorstore):
 
 
 def handle_userinput(user_question):
-    if st.session_state.conversation is None:
-        st.session_state.conversation = {'question': None}
-        st.write(bot_template.replace(
-            "{{MSG}}", "You are a PDF AI Assistant. Users should ask questions about the uploaded PDFs. Please upload PDFs and ask relevant questions."), unsafe_allow_html=True)
-    elif user_question.strip().lower() == "system_message":
-        st.write(bot_template.replace(
-            "{{MSG}}", "You are a PDF AI Assistant. Users should ask questions about the uploaded PDFs. Please upload PDFs and ask relevant questions."), unsafe_allow_html=True)
-    elif st.session_state.chat_history and st.session_state.chat_history[-1].content.startswith("You are a PDF AI Assistant"):
-        st.write(bot_template.replace(
-            "{{MSG}}", "Please upload PDFs and ask relevant questions about the uploaded PDFs."), unsafe_allow_html=True)
-    else:
+    if st.session_state.conversation:
         response = st.session_state.conversation({'question': user_question})
         st.session_state.chat_history = response['chat_history']
 
         for i, message in enumerate(st.session_state.chat_history):
             if i % 2 == 0:
-                st.write(user_template.replace(
-                    "{{MSG}}", message.content), unsafe_allow_html=True)
+                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
             else:
-                st.write(bot_template.replace(
-                    "{{MSG}}", message.content), unsafe_allow_html=True)
+                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+    else:
+        st.write(bot_template.replace("{{MSG}}", "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs."), unsafe_allow_html=True)
 
 def main():
     load_dotenv()
