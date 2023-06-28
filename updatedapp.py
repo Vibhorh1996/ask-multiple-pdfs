@@ -60,7 +60,7 @@ def handle_userinput(user_question):
     elif user_question.strip().lower() == "system_message":
         st.write(bot_template.replace(
             "{{MSG}}", "You are a PDF AI Assistant. Users should ask questions about the uploaded PDFs. Please upload PDFs and ask relevant questions."), unsafe_allow_html=True)
-    elif st.session_state.chat_history is not None and st.session_state.chat_history[-1].content.startswith("You are a PDF AI Assistant"):
+    elif st.session_state.chat_history and st.session_state.chat_history[-1].content.startswith("You are a PDF AI Assistant"):
         st.write(bot_template.replace(
             "{{MSG}}", "Please upload PDFs and ask relevant questions about the uploaded PDFs."), unsafe_allow_html=True)
     else:
