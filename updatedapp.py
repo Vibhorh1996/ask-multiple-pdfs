@@ -65,11 +65,9 @@ def handle_userinput(user_question):
 
         for i, message in enumerate(st.session_state.chat_history):
             if i % 2 == 0:
-                st.write(user_template.replace(
-                    "{{MSG}}", message['content']), unsafe_allow_html=True)
+                st.write(user_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
             else:
-                st.write(bot_template.replace(
-                    "{{MSG}}", message['content']), unsafe_allow_html=True)
+                st.write(bot_template.replace("{{MSG}}", message['content']), unsafe_allow_html=True)
 
 def main():
     load_dotenv()
@@ -85,10 +83,10 @@ def main():
     os.environ['OPENAI_API_KEY'] = key
 
     if "conversation" not in st.session_state:
-        st.session_state.conversation = None
-    
+    st.session_state.conversation = []
+
     if "chat_history" not in st.session_state:
-        st.session_state.chat_history = None
+    st.session_state.chat_history = []
 
     st.header("Chat with multiple PDFs :books:")
     user_question = st.text_input("Ask a question about your documents:")
