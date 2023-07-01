@@ -52,41 +52,41 @@ def get_conversation_chain(vectorstore):
     return conversation_chain
 
 
-def handle_userinput(user_question):
-    if st.session_state.conversation is None:
-        st.session_state.conversation = {'question': user_question}
-    else:
-        if 'pdf_questions' not in st.session_state:
-            st.session_state.pdf_questions = []
-        if user_question in st.session_state.pdf_questions:
-            st.session_state.conversation['question'] = user_question
-        else:
-            st.session_state.conversation = {'question': user_question}
-
-    response = st.session_state.conversation
-    st.session_state.chat_history = response['chat_history']
-
-    for i, message in enumerate(st.session_state.chat_history):
-        if i % 2 == 0:
-            st.write(user_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
-        else:
-            st.write(bot_template.replace(
-                "{{MSG}}", message.content), unsafe_allow_html=True)
-
-
 # def handle_userinput(user_question):
-#     if st.session_state.conversation:
-#         response = st.session_state.conversation({'question': user_question})
-#         st.session_state.chat_history = response['chat_history']
-
-#         for i, message in enumerate(st.session_state.chat_history):
-#             if i % 2 == 0:
-#                 st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-#             else:
-#                 st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+#     if st.session_state.conversation is None:
+#         st.session_state.conversation = {'question': user_question}
 #     else:
-#         st.write(bot_template.replace("{{MSG}}", "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs."), unsafe_allow_html=True)
+#         if 'pdf_questions' not in st.session_state:
+#             st.session_state.pdf_questions = []
+#         if user_question in st.session_state.pdf_questions:
+#             st.session_state.conversation['question'] = user_question
+#         else:
+#             st.session_state.conversation = {'question': user_question}
+
+#     response = st.session_state.conversation
+#     st.session_state.chat_history = response['chat_history']
+
+#     for i, message in enumerate(st.session_state.chat_history):
+#         if i % 2 == 0:
+#             st.write(user_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
+#         else:
+#             st.write(bot_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
+
+
+def handle_userinput(user_question):
+    if st.session_state.conversation:
+        response = st.session_state.conversation({'question': user_question})
+        st.session_state.chat_history = response['chat_history']
+
+        for i, message in enumerate(st.session_state.chat_history):
+            if i % 2 == 0:
+                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+            else:
+                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
+    else:
+        st.write(bot_template.replace("{{MSG}}", "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs."), unsafe_allow_html=True)
 
 
 def main():
