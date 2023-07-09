@@ -10,6 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
+from config import openai_api_key
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -74,9 +75,10 @@ def main():
     st.write(css, unsafe_allow_html=True)
 
     # set API Key
-    key = st.text_input('OpenAI API Key','',type='password')
-    os.environ['OPENAPI_API_KEY'] = key
-    os.environ['OPENAI_API_KEY'] = key
+    # key = st.text_input('OpenAI API Key','',type='password')
+    os.environ['OPENAI_API_KEY'] = openai_api_key
+    # os.environ['OPENAPI_API_KEY'] = key
+    # os.environ['OPENAI_API_KEY'] = key
 
     # initialize session state variables
     # if "generated" not in st.session_state:
