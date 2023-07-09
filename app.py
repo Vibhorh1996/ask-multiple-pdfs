@@ -10,7 +10,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
-from config import openai_api_key
+from config import openai
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -76,7 +76,7 @@ def main():
 
     # set API Key
     # key = st.text_input('OpenAI API Key','',type='password')
-    os.environ['OPENAI_API_KEY'] = openai_api_key
+    openai.api_key = openai.api_key
     # os.environ['OPENAPI_API_KEY'] = key
     # os.environ['OPENAI_API_KEY'] = key
 
