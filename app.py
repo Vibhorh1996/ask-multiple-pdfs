@@ -42,6 +42,8 @@ def get_vectorstore(text_chunks):
 
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
+    llm.set_api_key(openai.api_key)
+    llm.set_deployment_name(deployment_name)
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
     memory = ConversationBufferMemory(
@@ -76,10 +78,10 @@ def main():
     st.write(css, unsafe_allow_html=True)
 
     # set API Key
-    key = st.text_input('OpenAI API Key','',type='password')
-    # openai.api_key = openai.api_key
-    os.environ['OPENAPI_API_KEY'] = key
-    os.environ['OPENAI_API_KEY'] = key
+    # key = st.text_input('OpenAI API Key','',type='password')
+    # # openai.api_key = openai.api_key
+    # os.environ['OPENAPI_API_KEY'] = key
+    # os.environ['OPENAI_API_KEY'] = key
 
     # initialize session state variables
     # if "generated" not in st.session_state:
