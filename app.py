@@ -42,7 +42,7 @@ def get_vectorstore(text_chunks):
 
 def get_conversation_chain(vectorstore):
     llm = ChatOpenAI()
-    llm.set_api_key(openai.api_key)
+    llm.set_api_key(openai_api_key)
     llm.set_deployment_name(deployment_name)
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
