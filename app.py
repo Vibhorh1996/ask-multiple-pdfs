@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import config # import config file
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
@@ -10,7 +11,6 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 from htmlTemplates import css, bot_template, user_template
 from langchain.llms import HuggingFaceHub
-from config import openai
 
 def get_pdf_text(pdf_docs):
     text = ""
@@ -33,17 +33,17 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
+    embeddings = OpenAIEmbeddings(openai_api_key=config.api_key) # use config api key
     # embeddings = OpenAIEmbeddings()
     # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 
-def get_conversation_chain(vectorstore):
+def get_conversation_chain(vectorstore, deployment_name): # add deployment name as argument
     llm = ChatOpenAI()
-    llm.set_api_key(openai_api_key)
-    llm.set_deployment_name(deployment_name)
+    llm.set_api_key(openai_api_key=config.api_key) # use config api key
+    llm.set_deployment_name(deployment_name) # use deployment name from config
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
     memory = ConversationBufferMemory(
@@ -77,40 +77,14 @@ def main():
     
     st.write(css, unsafe_allow_html=True)
 
-    # set API Key
-    # key = st.text_input('OpenAI API Key','',type='password')
-    # # openai.api_key = openai.api_key
-    # os.environ['OPENAPI_API_KEY'] = key
-    # os.environ['OPENAI_API_KEY'] = key
-
-    # initialize session state variables
-    # if "generated" not in st.session_state:
-    #     st.session_state.generated=None
-
-    # if "past" not in st.session_state:
-    #     st.session_state.past= None
-
-    # if "messages" not in st.session_state:
-    #     st.session_state['messages']=[
-    #         {"role":"DataChat","content":"You are a helpful bot."}
-    #     ]
-
-    # if "model_name" not in st.session_state:
-    #     st.session_state.model_name=None
-
-    # if "cost" not in st.session_state:
-    #     st.session_state.cost= None
-
-    # if "total_tokens" not in st.session_state:
-    #     st.session_state.total_tokens=None
-
-    # if "total_cost" not in st.session_state:
-    #     st.session_state['total_cost']=0.0
+    # set API parameters from config file
+    openai.api_type = config.api_type 
+    openai.api_key = config.api_key 
+    openai.api_base = config.api_base 
+    openai.api_version = config.api_version 
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
-#     if "chat_history" not in st.session_state:
-#         st.session_state.chat_history = [{"role": "system", "content": "You will act as a PDF AI Assistant. You will be answering questions only related to the uploaded PDFs. If any question other than PDFs is asked, please reply: 'Not related to the PDFs. Can you ask another question?'"}]
     
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
@@ -138,84 +112,8 @@ def main():
 
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(
-                    vectorstore)
-
-        # model_name = st.sidebar.radio("Choose a model:",("GPT-3.5", "GPT-4"))
-        # counter_placeholder = st.sidebar.empty()
-        # counter_placeholder.write(f"Total cost of this conversation: ${st.session_state['total_cost']:.5f}")
-        # #clear_button = st.sidebar.button("Clear Conversation", key="clear")
-
-        # # map model names to OpenAI model IDs
-        # if model_name == "GPT-3.5":
-        #     model = "gpt-3.5-turbo"
-        # else:
-        #     model = "gpt-4"
-
-        # # reset everything
-        # if st.button("Clear Conversation"):
-        #     st.session_state.generated = None
-        #     st.session_state.past = None
-        #     st.session_state['messages'] = [
-        #         {"role": "system", "content": "You are a helpful assistant."}
-        #     ]
-        #     st.session_state.number_tokens = None
-        #     st.session_state.model_name = None
-        #     st.session_state.cost = None
-        #     st.session_state.total_cost = 0.0
-        #     st.session_state.total_tokens = None
-        #     counter_placeholder.write(f"Total cost of this conversation: ${st.session_state['total_cost']:.5f}")
+                    vectorstore, config.deployment_name) # pass deployment name from config
 
 
 if __name__ == '__main__':
     main()
-    
-    # # initialize session state variables
-    # if 'generated' not in st.session_state:
-    #     st.session_state['generated']=[]
-
-    # if 'past' not in st.session_state:
-    #     st.session_state['past']=[]
-
-    # if 'messages' not in st.session_state:
-    #     st.session_state['messages']=[
-    #         {"role":"DataChat","content":"You are a helpful bot."}
-    #     ]
-
-    # if 'model_name' not in st.session_state:
-    #     st.session_state['model_name']=[]
-
-    # if 'cost' not in st.session_state:
-    #     st.session_state['cost']=[]
-
-    # if 'total_tokens' not in st.session_state:
-    #     st.session_state['total_tokens']=[]
-
-    # if 'total_cost' not in st.session_state:
-    #     st.session_state['total_cost']=0.0
-
-    
-        
-        # model_name = st.sidebar.radio("Choose a model:",("GPT-3.5", "GPT-4"))
-        # counter_placeholder = st.sidebar.empty()
-        # counter_placeholder.write(f"Total cost of this conversation: ${st.session_state['total_cost']:.5f}")
-        # clear_button = st.sidebar.button("Clear Conversation", key="clear")
-
-        # # map model names to OpenAI model IDs
-        # if model_name == "GPT-3.5":
-        #     model = "gpt-3.5-turbo"
-        # else:
-        #     model = "gpt-4"
-
-        # # reset everything
-        # if clear_button:
-        #     st.session_state['generated'] = []
-        #     st.session_state['past'] = []
-        #     st.session_state['messages'] = [
-        #         {"role": "system", "content": "You are a helpful assistant."}
-        #     ]
-        #     st.session_state['number_tokens'] = []
-        #     st.session_state['model_name'] = []
-        #     st.session_state['cost'] = []
-        #     st.session_state['total_cost'] = 0.0
-        #     st.session_state['total_tokens'] = []
-        #     counter_placeholder.write(f"Total cost of this conversation: ${st.session_state['total_cost']:.5f}")
