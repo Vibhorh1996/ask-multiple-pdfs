@@ -1,7 +1,7 @@
 import os
 import openai
 
-deployment_name = "LH-davinci"
+deployment_name = "LH-GPT"
 api_type = "azure"
 api_key = "fb3a0027e2c64a52adae3ba9f4b67583"
 api_base = "https://openai-lh.openai.azure.com/"
