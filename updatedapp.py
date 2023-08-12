@@ -70,11 +70,11 @@ def handle_userinput(user_question):
         else:
             st.write(bot_template.replace(
                 "{{MSG}}", message.content), unsafe_allow_html=True)
+# ... (imports and other functions)
 
 def main():
     load_dotenv()
     print("Env loaded successfully:", os.getenv('OPENAI_API_KEY') is not None)
-
 
     # Retrieve the API key from the environment variable
     api_key = os.getenv('OPENAI_API_KEY')
@@ -123,45 +123,58 @@ def main():
                 # get the text chunks
                 text_chunks = get_text_chunks(raw_text)
 
-                # create vector store
-                vectorstore = get_vectorstore(text_chunks)
+                # Calculate the number of batches based on the 16-input limit
+                batch_size = 16
+                num_batches = (len(text_chunks) + batch_size - 1) // batch_size
 
-                # create conversation chain
-                st.session_state.conversation = get_conversation_chain(vectorstore, config.deployment_name) # pass deployment name from config
+                # Create conversation chain for each batch
+                conversation_chains = []
+                for i in range(num_batches):
+                    batch_text_chunks = text_chunks[i * batch_size: (i + 1) * batch_size]
+                    vectorstore = get_vectorstore(batch_text_chunks)
+                    conversation_chain = get_conversation_chain(vectorstore, config.deployment_name)
+                    conversation_chains.append(conversation_chain)
+
+                # Combine all conversation chains
+                combined_conversation_chain = ConversationBufferMemory.combine(*conversation_chains)
+                st.session_state.conversation = combined_conversation_chain
+
+if __name__ == '__main__':
+    main()
 
 
 
 # def main():
 #     load_dotenv()
-#      # Print the API key, API base URL, and deployment name for debugging purposes
-#     print("API Key:", os.environ.get('OPENAI_API_KEY'))
+#     print("Env loaded successfully:", os.getenv('OPENAI_API_KEY') is not None)
+
+
+#     # Retrieve the API key from the environment variable
+#     api_key = os.getenv('OPENAI_API_KEY')
+#     if api_key is None:
+#         st.error("ERROR: OPENAI_API_KEY environment variable not set.")
+#         st.stop()
+
+#     # Print the API key, API base URL, and deployment name for debugging purposes
+#     print("API Key:", api_key)
 #     print("API Base:", config.api_base)
 #     print("Deployment Name:", config.deployment_name)
+
 #     st.set_page_config(page_title="Data Chat", page_icon=':robot_face:')
 #     st.markdown("<h1 stype='text-align:center;'>Data Chat</h1>", unsafe_allow_html=True)
 #     st.markdown("<h2 stype='text-align:center;'>A Chatbot for conversing with your data</h2>", unsafe_allow_html=True)
-    
+
 #     st.write(css, unsafe_allow_html=True)
 
 #     # set API parameters from config file
 #     openai.api_type = config.api_type
-
-#     # Retrieve the API key from the environment variable
-#     api_key = os.environ.get('OPENAI_API_KEY')
-#     if api_key is None:
-#         st.error("ERROR: OPENAI_API_KEY environment variable not set.")
-#         st.stop()
-#     # st.write(openai.api_type) 
-#     openai.api_key = api_key 
-#     # st.write(openai.api_key)
-#     openai.api_base = config.api_base 
-#     # st.write(openai.api_base)
-#     openai.api_version = config.api_version 
-#     # st.write(openai.api_version)
+#     openai.api_key = api_key
+#     openai.api_base = config.api_base
+#     openai.api_version = config.api_version
 
 #     if "conversation" not in st.session_state:
 #         st.session_state.conversation = None
-    
+
 #     if "chat_history" not in st.session_state:
 #         st.session_state.chat_history = None
 
@@ -174,7 +187,7 @@ def main():
 #         st.subheader("Your documents")
 #         pdf_docs = st.file_uploader(
 #             "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
-        
+
 #         if st.button("Process"):
 #             with st.spinner("Processing"):
 #                 # get pdf text
@@ -187,8 +200,7 @@ def main():
 #                 vectorstore = get_vectorstore(text_chunks)
 
 #                 # create conversation chain
-#                 st.session_state.conversation = get_conversation_chain(
-#                     vectorstore, config.deployment_name) # pass deployment name from config
+#                 st.session_state.conversation = get_conversation_chain(vectorstore, config.deployment_name) # pass deployment name from config
 
 
 if __name__ == '__main__':
