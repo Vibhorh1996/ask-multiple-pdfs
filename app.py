@@ -1,7 +1,4 @@
 import streamlit as st
-import os
-import openai
-import config # import config file
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
@@ -34,17 +31,14 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    # embeddings = OpenAIEmbeddings(openai_api_key=config.api_key) # use config api key
     # embeddings = OpenAIEmbeddings()
     embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 
-def get_conversation_chain(vectorstore, deployment_name): # add deployment name as argument
+def get_conversation_chain(vectorstore):
     # llm = ChatOpenAI()
-    # llm.set_api_key(openai_api_key=config.api_key) # use config api key
-    # llm.set_deployment_name(deployment_name) # use deployment name from config
     llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
     memory = ConversationBufferMemory(
@@ -72,21 +66,12 @@ def handle_userinput(user_question):
 
 def main():
     load_dotenv()
-    st.set_page_config(page_title="Data Chat", page_icon=':robot_face:')
-    st.markdown("<h1 stype='text-align:center;'>Data Chat</h1>", unsafe_allow_html=True)
-    st.markdown("<h2 stype='text-align:center;'>A Chatbot for conversing with your data</h2>", unsafe_allow_html=True)
-    
+    st.set_page_config(page_title="Chat with multiple PDFs",
+                       page_icon=":books:")
     st.write(css, unsafe_allow_html=True)
-
-    # set API parameters from config file
-    openai.api_type = config.api_type 
-    openai.api_key = config.api_key 
-    openai.api_base = config.api_base 
-    openai.api_version = config.api_version 
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
-    
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
@@ -99,7 +84,6 @@ def main():
         st.subheader("Your documents")
         pdf_docs = st.file_uploader(
             "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
-        
         if st.button("Process"):
             with st.spinner("Processing"):
                 # get pdf text
@@ -113,7 +97,7 @@ def main():
 
                 # create conversation chain
                 st.session_state.conversation = get_conversation_chain(
-                    vectorstore, config.deployment_name) # pass deployment name from config
+                    vectorstore)
 
 
 if __name__ == '__main__':
