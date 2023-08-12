@@ -203,5 +203,5 @@ if __name__ == '__main__':
 #                 st.session_state.conversation = get_conversation_chain(vectorstore, config.deployment_name) # pass deployment name from config
 
 
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
