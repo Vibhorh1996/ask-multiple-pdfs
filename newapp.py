@@ -58,6 +58,11 @@ def get_conversation_chain(vectorstore, deployment_name): # add deployment name 
 
 
 def handle_userinput(user_question):
+    # Ensure the conversation history does not exceed 16 messages
+    if st.session_state.chat_history:
+        if len(st.session_state.chat_history) >= 16:
+            st.session_state.chat_history = st.session_state.chat_history[-15:]
+
     response = st.session_state.conversation({'question': user_question})
     st.session_state.chat_history = response['chat_history']
 
@@ -68,6 +73,19 @@ def handle_userinput(user_question):
         else:
             st.write(bot_template.replace(
                 "{{MSG}}", message.content), unsafe_allow_html=True)
+
+
+# def handle_userinput(user_question):
+#     response = st.session_state.conversation({'question': user_question})
+#     st.session_state.chat_history = response['chat_history']
+
+#     for i, message in enumerate(st.session_state.chat_history):
+#         if i % 2 == 0:
+#             st.write(user_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
+#         else:
+#             st.write(bot_template.replace(
+#                 "{{MSG}}", message.content), unsafe_allow_html=True)
 
 
 def main():
