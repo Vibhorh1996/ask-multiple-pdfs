@@ -128,16 +128,16 @@ def main():
                 num_batches = (len(text_chunks) + batch_size - 1) // batch_size
 
                 # Create conversation chain for each batch
-                conversation_chains = []
+                combined_chat_history = []
                 for i in range(num_batches):
                     batch_text_chunks = text_chunks[i * batch_size: (i + 1) * batch_size]
                     vectorstore = get_vectorstore(batch_text_chunks)
                     conversation_chain = get_conversation_chain(vectorstore, config.deployment_name)
-                    conversation_chains.append(conversation_chain)
+                    response = st.session_state.conversation({'question': user_question})
+                    combined_chat_history.extend(response['chat_history'])
 
-                # Combine all conversation chains
-                combined_conversation_chain = ConversationBufferMemory.combine(*conversation_chains)
-                st.session_state.conversation = combined_conversation_chain
+                # Update the chat history
+                st.session_state.chat_history = combined_chat_history
 
 if __name__ == '__main__':
     main()
