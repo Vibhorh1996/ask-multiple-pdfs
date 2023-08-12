@@ -1,5 +1,7 @@
 import streamlit as st
 import os
+import openai
+import config # import config file
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from langchain.text_splitter import CharacterTextSplitter
@@ -32,14 +34,19 @@ def get_text_chunks(text):
 
 
 def get_vectorstore(text_chunks):
-    embeddings = OpenAIEmbeddings()
+    openai_api_key=os.getenv('OPENAI_API_KEY') #config.api_key
+    print("API Key:", openai_api_key) #os.environ.get('OPENAI_API_KEY'))
+    embeddings = OpenAIEmbeddings(openai_api_key = os.getenv('OPENAI_API_KEY')) #config.api_key) # use config api key
+    # embeddings = OpenAIEmbeddings()
     # embeddings = HuggingFaceInstructEmbeddings(model_name="hkunlp/instructor-xl")
     vectorstore = FAISS.from_texts(texts=text_chunks, embedding=embeddings)
     return vectorstore
 
 
-def get_conversation_chain(vectorstore):
+def get_conversation_chain(vectorstore, deployment_name): # add deployment name as argument
     llm = ChatOpenAI()
+    # llm.set_api_key(openai_api_key=os.getenv('OPENAI_API_KEY')) #config.api_key) # use config api key
+    # llm.set_deployment_name(deployment_name) # use deployment name from config
     # llm = HuggingFaceHub(repo_id="google/flan-t5-xxl", model_kwargs={"temperature":0.5, "max_length":512})
 
     memory = ConversationBufferMemory(
@@ -51,36 +58,50 @@ def get_conversation_chain(vectorstore):
     )
     return conversation_chain
 
+
 def handle_userinput(user_question):
-    if st.session_state.conversation:
-        response = st.session_state.conversation({'question': user_question})
-        st.session_state.chat_history = response['chat_history']
+    response = st.session_state.conversation({'question': user_question})
+    st.session_state.chat_history = response['chat_history']
 
-        for i, message in enumerate(st.session_state.chat_history):
-            if i % 2 == 0:
-                st.write(user_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-            else:
-                st.write(bot_template.replace("{{MSG}}", message.content), unsafe_allow_html=True)
-    else:
-        st.write(bot_template.replace("{{MSG}}", "I'm sorry, but I cannot answer questions outside the scope of the uploaded PDFs."), unsafe_allow_html=True)
-
+    for i, message in enumerate(st.session_state.chat_history):
+        if i % 2 == 0:
+            st.write(user_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
+        else:
+            st.write(bot_template.replace(
+                "{{MSG}}", message.content), unsafe_allow_html=True)
 
 def main():
     load_dotenv()
+    print("Env loaded successfully:", os.getenv('OPENAI_API_KEY') is not None)
+
+
+    # Retrieve the API key from the environment variable
+    api_key = os.getenv('OPENAI_API_KEY')
+    if api_key is None:
+        st.error("ERROR: OPENAI_API_KEY environment variable not set.")
+        st.stop()
+
+    # Print the API key, API base URL, and deployment name for debugging purposes
+    print("API Key:", api_key)
+    print("API Base:", config.api_base)
+    print("Deployment Name:", config.deployment_name)
+
     st.set_page_config(page_title="Data Chat", page_icon=':robot_face:')
     st.markdown("<h1 stype='text-align:center;'>Data Chat</h1>", unsafe_allow_html=True)
     st.markdown("<h2 stype='text-align:center;'>A Chatbot for conversing with your data</h2>", unsafe_allow_html=True)
-    
+
     st.write(css, unsafe_allow_html=True)
 
-    # set API Key
-    key = st.text_input('OpenAI API Key','',type='password')
-    os.environ['OPENAPI_API_KEY'] = key
-    os.environ['OPENAI_API_KEY'] = key
+    # set API parameters from config file
+    openai.api_type = config.api_type
+    openai.api_key = api_key
+    openai.api_base = config.api_base
+    openai.api_version = config.api_version
 
     if "conversation" not in st.session_state:
         st.session_state.conversation = None
-    
+
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = None
 
@@ -93,7 +114,7 @@ def main():
         st.subheader("Your documents")
         pdf_docs = st.file_uploader(
             "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
-        
+
         if st.button("Process"):
             with st.spinner("Processing"):
                 # get pdf text
@@ -106,8 +127,69 @@ def main():
                 vectorstore = get_vectorstore(text_chunks)
 
                 # create conversation chain
-                st.session_state.conversation = get_conversation_chain(
-                    vectorstore)
+                st.session_state.conversation = get_conversation_chain(vectorstore, config.deployment_name) # pass deployment name from config
+
+
+
+# def main():
+#     load_dotenv()
+#      # Print the API key, API base URL, and deployment name for debugging purposes
+#     print("API Key:", os.environ.get('OPENAI_API_KEY'))
+#     print("API Base:", config.api_base)
+#     print("Deployment Name:", config.deployment_name)
+#     st.set_page_config(page_title="Data Chat", page_icon=':robot_face:')
+#     st.markdown("<h1 stype='text-align:center;'>Data Chat</h1>", unsafe_allow_html=True)
+#     st.markdown("<h2 stype='text-align:center;'>A Chatbot for conversing with your data</h2>", unsafe_allow_html=True)
+    
+#     st.write(css, unsafe_allow_html=True)
+
+#     # set API parameters from config file
+#     openai.api_type = config.api_type
+
+#     # Retrieve the API key from the environment variable
+#     api_key = os.environ.get('OPENAI_API_KEY')
+#     if api_key is None:
+#         st.error("ERROR: OPENAI_API_KEY environment variable not set.")
+#         st.stop()
+#     # st.write(openai.api_type) 
+#     openai.api_key = api_key 
+#     # st.write(openai.api_key)
+#     openai.api_base = config.api_base 
+#     # st.write(openai.api_base)
+#     openai.api_version = config.api_version 
+#     # st.write(openai.api_version)
+
+#     if "conversation" not in st.session_state:
+#         st.session_state.conversation = None
+    
+#     if "chat_history" not in st.session_state:
+#         st.session_state.chat_history = None
+
+#     st.header("Chat with multiple PDFs :books:")
+#     user_question = st.text_input("Ask a question about your documents:")
+#     if user_question:
+#         handle_userinput(user_question)
+
+#     with st.sidebar:
+#         st.subheader("Your documents")
+#         pdf_docs = st.file_uploader(
+#             "Upload your PDFs here and click on 'Process'", accept_multiple_files=True)
+        
+#         if st.button("Process"):
+#             with st.spinner("Processing"):
+#                 # get pdf text
+#                 raw_text = get_pdf_text(pdf_docs)
+
+#                 # get the text chunks
+#                 text_chunks = get_text_chunks(raw_text)
+
+#                 # create vector store
+#                 vectorstore = get_vectorstore(text_chunks)
+
+#                 # create conversation chain
+#                 st.session_state.conversation = get_conversation_chain(
+#                     vectorstore, config.deployment_name) # pass deployment name from config
+
 
 if __name__ == '__main__':
     main()
